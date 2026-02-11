@@ -9,9 +9,13 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<div></div>
 <table class="table">
     <thead>
         <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ImagePath)
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
@@ -36,6 +40,9 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
+            <td>
+                <img src="@item.ImagePath" alt="@item.Name" style="height:20px;" />
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
             </td>

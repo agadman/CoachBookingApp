@@ -56,17 +56,44 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Title,Specialty,Bio")] Coach coach)
+        public async Task<IActionResult> Create([Bind("Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(coach);
+                //  Image 
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
 
-                // Add CreatedBy and CreatedAt automatically
+                    // create folder if it doesn't exist
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    var filePath = Path.Combine(folderPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    coach.ImagePath = "/images/" + fileName;
+                }
+                else
+                {
+                    coach.ImagePath = "/images/default.png"; // fallback-image
+                }
+
+                // Add CreatedBy and CreatedAt automatically (Metadata)
                 coach.CreatedAt = DateTime.Now;
                 coach.CreatedBy = User.Identity?.Name ?? "Unknown";
-
+                
+                // Sparar i Databasen
+                _context.Add(coach);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(coach);
@@ -93,7 +120,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio")] Coach coach)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
         {
             if (id != coach.Id)
             {
@@ -104,6 +131,22 @@ namespace CoachBookingApp.Controllers
             {
                 try
                 {
+                    // If the user add a new image, ssave it and update ImagePath
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+
+                        if (!Directory.Exists(folderPath))
+                            Directory.CreateDirectory(folderPath);
+
+                        var filePath = Path.Combine(folderPath, fileName);
+                        using var stream = new FileStream(filePath, FileMode.Create);
+                        await imageFile.CopyToAsync(stream);
+
+                        coach.ImagePath = "/images/" + fileName;
+                    }
+
                     _context.Update(coach);
                     await _context.SaveChangesAsync();
                 }

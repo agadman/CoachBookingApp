@@ -28,6 +28,9 @@ namespace CoachBookingApp.Models
         [Display(Name = "Biografi")]
         public string? Bio { get; set; }
 
+        [Display(Name = "Bild")]
+        public string? ImagePath { get; set; }
+
         public DateTime? CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
     }
