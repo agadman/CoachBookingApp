@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CoachBookingApp.Data;
 using CoachBookingApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoachBookingApp.Controllers
 {
+    [Authorize]
     public class CoachesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -54,11 +56,16 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Title,Specialty,Bio,CreatedAt,CreatedBy")] Coach coach)
+        public async Task<IActionResult> Create([Bind("Id,Name,Title,Specialty,Bio")] Coach coach)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(coach);
+
+                // Add CreatedBy and CreatedAt automatically
+                coach.CreatedAt = DateTime.Now;
+                coach.CreatedBy = User.Identity?.Name ?? "Unknown";
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -86,7 +93,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio,CreatedAt,CreatedBy")] Coach coach)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio")] Coach coach)
         {
             if (id != coach.Id)
             {
