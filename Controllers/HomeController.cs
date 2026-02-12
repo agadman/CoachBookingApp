@@ -1,14 +1,21 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using CoachBookingApp.Models;
+using CoachBookingApp.Data;
 
 namespace CoachBookingApp.Controllers;
 
 public class HomeController : Controller
 {
+    private readonly ApplicationDbContext _context;
+     public HomeController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
     public IActionResult Index()
     {
-        return View();
+        var coaches = _context.Coaches.ToList(); 
+        return View(coaches);
     }
 
     public IActionResult Privacy()

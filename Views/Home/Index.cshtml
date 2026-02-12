@@ -1,8 +1,23 @@
-﻿@{
+﻿@model IEnumerable<CoachBookingApp.Models.Coach>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h1>Våra coacher</h1>
+
+<div class="row">
+@foreach (var coach in Model)
+{
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <img src="@coach.ImagePath" class="card-img-top" alt="@coach.Name" />
+            <div class="card-body">
+                <h2>@coach.Name</h2>
+                <h3>@coach.Title</h3>
+                <p>@coach.Bio</p>
+            </div>
+        </div>
+    </div>
+}
 </div>
