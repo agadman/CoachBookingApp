@@ -33,5 +33,6 @@ namespace CoachBookingApp.Models
 
         public DateTime? CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
+        public List<TimeSlot>? TimeSlots { get; set; }
     }
 }
