@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using CoachBookingApp.Models;
 
 public class TimeSlot
@@ -7,4 +8,5 @@ public class TimeSlot
     public DateTime EndTime { get; set; }
     public int CoachId { get; set; }
     public Coach? Coach { get; set; }
+    public Booking? Booking { get; set; }
 }

@@ -13,5 +13,6 @@ namespace CoachBookingApp.Data
 
         public DbSet<Coach> Coaches { get; set; }
         public DbSet<TimeSlot> Timeslots { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
     }
 }

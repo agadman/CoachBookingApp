@@ -3,6 +3,7 @@ using System;
 using CoachBookingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CoachBookingApp.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260213040057_AddBookingRelations")]
+    partial class AddBookingRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -42,12 +45,12 @@ namespace CoachBookingApp.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TimeSlotId")
-                        .IsUnique();
+                    b.HasIndex("TimeSlotId");
 
                     b.ToTable("Bookings");
                 });
@@ -300,6 +303,9 @@ namespace CoachBookingApp.Data.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsBooked")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
 
@@ -313,8 +319,8 @@ namespace CoachBookingApp.Data.Migrations
             modelBuilder.Entity("CoachBookingApp.Models.Booking", b =>
                 {
                     b.HasOne("TimeSlot", "TimeSlot")
-                        .WithOne("Booking")
-                        .HasForeignKey("CoachBookingApp.Models.Booking", "TimeSlotId")
+                        .WithMany()
+                        .HasForeignKey("TimeSlotId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -386,11 +392,6 @@ namespace CoachBookingApp.Data.Migrations
             modelBuilder.Entity("CoachBookingApp.Models.Coach", b =>
                 {
                     b.Navigation("TimeSlots");
-                });
-
-            modelBuilder.Entity("TimeSlot", b =>
-                {
-                    b.Navigation("Booking");
                 });
 #pragma warning restore 612, 618
         }
