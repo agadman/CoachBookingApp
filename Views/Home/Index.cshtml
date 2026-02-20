@@ -16,6 +16,13 @@
                 <h2>@coach.Name</h2>
                 <h3>@coach.Title</h3>
                 <p>@coach.Bio</p>
+
+                <a asp-controller="Bookings"
+                asp-action="SelectTime"
+                asp-route-coachId="@coach.Id"
+                class="btn btn-primary">
+                    Boka
+                </a>
             </div>
         </div>
     </div>
