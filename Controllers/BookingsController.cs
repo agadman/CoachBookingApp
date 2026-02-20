@@ -49,8 +49,9 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings/Create
-        public IActionResult Create()
-{
+        // GET: Bookings/Create
+        public IActionResult Create(int? timeSlotId)
+        {
             var freeSlots = _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking) 
@@ -64,53 +65,67 @@ namespace CoachBookingApp.Controllers
                 Text = t.Coach!.Name + " - " + t.StartTime.ToString("yyyy-MM-dd HH:mm")
             }).ToList();
 
-            return View();
+            var booking = new Booking();
+
+            if (timeSlotId != null)
+            {
+                var slot = _context.Timeslots.Include(t => t.Coach)
+                                            .FirstOrDefault(t => t.Id == timeSlotId);
+
+                if (slot != null)
+                {
+                    booking.TimeSlotId = slot.Id;
+
+                    // Prefill namn & email från inloggad user
+                    booking.CustomerName = User.Identity?.Name ?? "";
+                    booking.CustomerEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+
+                    ViewData["IsPrefill"] = true;
+                    ViewData["CoachName"] = slot.Coach?.Name;
+                }
+            }
+
+            return View(booking);
         }
 
         // POST: Bookings/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-     [HttpPost]
-     [ValidateAntiForgeryToken]
-      public async Task<IActionResult> Create(Booking booking)
-      {
-        // Sätt automatiska fält FÖRE validering
-        booking.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-        booking.Status = "Booked";
-        booking.CreatedAt = DateTime.UtcNow;
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Booking booking)
+        {
+            booking.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            booking.Status = "Booked";
+            booking.CreatedAt = DateTime.UtcNow;
 
-        var slot = await _context.Timeslots
-            .Include(t => t.Booking)
-            .FirstOrDefaultAsync(t => t.Id == booking.TimeSlotId);
+            var slot = await _context.Timeslots
+                .Include(t => t.Booking)
+                .FirstOrDefaultAsync(t => t.Id == booking.TimeSlotId);
 
             if (slot == null || slot.Booking != null)
             {
                 ModelState.AddModelError("TimeSlotId", "Denna tid är redan bokad eller finns inte.");
             }
 
-        if (ModelState.IsValid)
-        {
-            // Fyll i fälten för booking
-            booking.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
-            booking.Status = "Booked";
-            booking.CreatedAt = DateTime.UtcNow;
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Om fel: fyll dropdownen igen
-        ViewData["TimeSlotId"] = _context.Timeslots
-            .Include(t => t.Coach)
-            .Include(t => t.Booking) // inkludera Booking
-            .Where(t => t.Booking == null && t.StartTime > DateTime.Now)
-            .OrderBy(t => t.StartTime)
-            .Select(t => new SelectListItem
+            if (ModelState.IsValid)
             {
-                Value = t.Id.ToString(),
-                Text = t.Coach!.Name + " - " + t.StartTime.ToString("yyyy-MM-dd HH:mm")
-            }).ToList();
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Om något gick fel, ladda lediga tider igen
+            ViewData["TimeSlotId"] = _context.Timeslots
+                .Include(t => t.Coach)
+                .Include(t => t.Booking)
+                .Where(t => t.Booking == null && t.StartTime > DateTime.Now)
+                .OrderBy(t => t.StartTime)
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Coach!.Name + " - " + t.StartTime.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
 
             return View(booking);
         }
@@ -244,6 +259,20 @@ namespace CoachBookingApp.Controllers
                 .ToListAsync();
 
             return View(times);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> MyBookings()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var myBookings = await _context.Bookings
+                .Include(b => b.TimeSlot)
+                .ThenInclude(t => t.Coach)
+                .Where(b => b.UserId == userId)
+                .OrderBy(b => b.TimeSlot.StartTime)
+                .ToListAsync();
+
+            return View(myBookings);
         }
     }
 }

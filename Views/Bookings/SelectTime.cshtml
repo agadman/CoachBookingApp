@@ -1,7 +1,6 @@
-@using CoachBookingApp.Models
-@model IEnumerable<TimeSlot>
+@model IEnumerable<CoachBookingApp.Models.TimeSlot>
 
-<h2>Välj en tid</h2>
+<h2>Välj en tid för @ViewData["CoachName"]</h2>
 
 @if (!Model.Any())
 {
@@ -9,18 +8,28 @@
 }
 else
 {
-    @foreach (var time in Model)
-    {
-        <div>
-            <strong>@time.Coach?.Name</strong><br />
-            @time.StartTime.ToString("yyyy-MM-dd HH:mm")
-
-            <a asp-action="Create"
-               asp-route-TimeSlotId="@time.Id"
-               class="btn btn-success">
-                Boka
-            </a>
-        </div>
-        <hr />
-    }
+   <table class="table">
+    <thead>
+        <tr>
+            <th>Start</th>
+            <th>Slut</th>
+            <th>Boka</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var slot in Model)
+        {
+            <tr>
+                <td>@slot.StartTime.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@slot.EndTime.ToString("HH:mm")</td>
+                <td>
+                    <form asp-controller="Bookings" asp-action="Create" method="post">
+                        <input type="hidden" name="TimeSlotId" value="@slot.Id" />
+                        <button type="submit" class="btn btn-success">Boka denna tid</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 }
