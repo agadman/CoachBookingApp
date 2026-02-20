@@ -229,5 +229,21 @@ namespace CoachBookingApp.Controllers
         {
             return _context.Bookings.Any(e => e.Id == id);
         }
+
+        [Authorize]
+        public async Task<IActionResult> SelectTime(int coachId)
+        {
+            var times = await _context.Timeslots
+                .Include(t => t.Coach)
+                .Include(t => t.Booking)
+                .Where(t =>
+                    t.CoachId == coachId &&
+                    t.Booking == null &&
+                    t.StartTime > DateTime.Now)
+                .OrderBy(t => t.StartTime)
+                .ToListAsync();
+
+            return View(times);
+        }
     }
 }

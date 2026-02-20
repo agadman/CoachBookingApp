@@ -1,0 +1,26 @@
+@using CoachBookingApp.Models
+@model IEnumerable<TimeSlot>
+
+<h2>Välj en tid</h2>
+
+@if (!Model.Any())
+{
+    <p>Inga lediga tider finns.</p>
+}
+else
+{
+    @foreach (var time in Model)
+    {
+        <div>
+            <strong>@time.Coach?.Name</strong><br />
+            @time.StartTime.ToString("yyyy-MM-dd HH:mm")
+
+            <a asp-action="Create"
+               asp-route-TimeSlotId="@time.Id"
+               class="btn btn-success">
+                Boka
+            </a>
+        </div>
+        <hr />
+    }
+}

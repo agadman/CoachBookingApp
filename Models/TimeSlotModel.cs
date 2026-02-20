@@ -1,5 +1,4 @@
-using System.Net.Http.Headers;
-using CoachBookingApp.Models;
+namespace CoachBookingApp.Models;
 
 public class TimeSlot
 {

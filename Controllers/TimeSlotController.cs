@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CoachBookingApp.Data;
+using CoachBookingApp.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CoachBookingApp.Controllers
