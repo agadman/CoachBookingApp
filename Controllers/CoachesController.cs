@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CoachBookingApp.Controllers
 {
-    [Authorize]
     public class CoachesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +21,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Coaches
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Coaches.ToListAsync());
@@ -46,6 +46,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Coaches/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -56,6 +57,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
@@ -100,6 +102,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Coaches/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -120,6 +123,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
         {
             if (id != coach.Id)
@@ -167,6 +171,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Coaches/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -187,6 +192,7 @@ namespace CoachBookingApp.Controllers
         // POST: Coaches/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var coach = await _context.Coaches.FindAsync(id);

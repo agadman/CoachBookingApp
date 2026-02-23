@@ -23,6 +23,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Bookings.Include(b => b.TimeSlot);
@@ -30,26 +31,39 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings/Details/5
+       [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var booking = await _context.Bookings
                 .Include(b => b.TimeSlot)
+                .ThenInclude(t => t.Coach)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (booking == null)
-            {
-                return NotFound();
-            }
 
-            return View(booking);
+            if (booking == null)
+                return NotFound();
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRole = User.IsInRole("Admin");
+            var isCoach = User.IsInRole("Coach");
+            var isUser = User.IsInRole("User");
+
+            if (userRole)
+                return View(booking);
+
+            if (isUser && booking.UserId == userId)
+                return View(booking);
+
+         
+
+            return Forbid();
         }
 
         // GET: Bookings/Create
         // GET: Bookings/Create
+        [Authorize(Roles = "Admin,User")]
         public IActionResult Create(int? timeSlotId)
         {
             var freeSlots = _context.Timeslots
@@ -93,6 +107,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> Create(Booking booking)
         {
             booking.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
@@ -130,6 +145,7 @@ namespace CoachBookingApp.Controllers
             return View(booking);
         }
         // GET: Bookings/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -161,6 +177,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,CustomerName,CustomerEmail,Status,CreatedAt,TimeSlotId")] Booking booking)
         {
             if (id != booking.Id)
@@ -203,6 +220,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -224,6 +242,7 @@ namespace CoachBookingApp.Controllers
         // POST: Bookings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var booking = await _context.Bookings
@@ -236,7 +255,6 @@ namespace CoachBookingApp.Controllers
                 await _context.SaveChangesAsync();
            }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -261,7 +279,7 @@ namespace CoachBookingApp.Controllers
             return View(times);
         }
 
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> MyBookings()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
