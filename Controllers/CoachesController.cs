@@ -69,29 +69,6 @@ namespace CoachBookingApp.Controllers
             string Password,
             IFormFile? imageFile)
         {
-            if (!ModelState.IsValid)
-                return View(coach);
-
-            // Skapar IdentityUser
-            var user = new IdentityUser
-            {
-                UserName = Email,
-                Email = Email
-            };
-
-            var result = await _userManager.CreateAsync(user, Password);
-
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError("", error.Description);
-
-                return View(coach);
-            }
-
-            // Lägger till Coach-rollen
-            await _userManager.AddToRoleAsync(user, "Coach");
-
             if (imageFile != null && imageFile.Length > 0)
             {
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -111,11 +88,32 @@ namespace CoachBookingApp.Controllers
             }
             else
             {
-                coach.ImagePath = "/images/default.png";
+                coach.ImagePath = "/images/default.png"; 
             }
 
             coach.CreatedAt = DateTime.Now;
             coach.CreatedBy = User.Identity?.Name ?? "Unknown";
+
+            if (!ModelState.IsValid)
+                return View(coach); 
+
+            var user = new IdentityUser
+            {
+                UserName = Email,
+                Email = Email
+            };
+
+            var result = await _userManager.CreateAsync(user, Password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+
+                return View(coach);
+            }
+
+            await _userManager.AddToRoleAsync(user, "Coach");
             coach.UserId = user.Id;
 
             _context.Add(coach);
