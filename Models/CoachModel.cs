@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace CoachBookingApp.Models
 {
@@ -33,6 +34,11 @@ namespace CoachBookingApp.Models
 
         public DateTime? CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
+       
+        // UserId kopplar Coach till IdentityUser, så man vet vilken användare som är coach
+        public string? UserId { get; set; }
+        public IdentityUser? User { get; set; }
+
         public List<TimeSlot>? TimeSlots { get; set; }
     }
 }

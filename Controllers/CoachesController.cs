@@ -8,16 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using CoachBookingApp.Data;
 using CoachBookingApp.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace CoachBookingApp.Controllers
 {
     public class CoachesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public CoachesController(ApplicationDbContext context)
+        public CoachesController(
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Coaches
@@ -58,47 +63,65 @@ namespace CoachBookingApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
+        public async Task<IActionResult> Create(
+            [Bind("Name,Title,Specialty,Bio")] Coach coach,
+            string Email,
+            string Password,
+            IFormFile? imageFile)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(coach);
+
+            // Skapar IdentityUser
+            var user = new IdentityUser
             {
-                //  Image 
-                if (imageFile != null && imageFile.Length > 0)
-                {
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                UserName = Email,
+                Email = Email
+            };
 
-                    // create folder if it doesn't exist
-                    if (!Directory.Exists(folderPath))
-                    {
-                        Directory.CreateDirectory(folderPath);
-                    }
+            var result = await _userManager.CreateAsync(user, Password);
 
-                    var filePath = Path.Combine(folderPath, fileName);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
 
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(stream);
-                    }
-
-                    coach.ImagePath = "/images/" + fileName;
-                }
-                else
-                {
-                    coach.ImagePath = "/images/default.png"; // fallback-image
-                }
-
-                // Add CreatedBy and CreatedAt automatically (Metadata)
-                coach.CreatedAt = DateTime.Now;
-                coach.CreatedBy = User.Identity?.Name ?? "Unknown";
-                
-                // Sparar i Databasen
-                _context.Add(coach);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                return View(coach);
             }
-            return View(coach);
+
+            // Lägger till Coach-rollen
+            await _userManager.AddToRoleAsync(user, "Coach");
+
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                var filePath = Path.Combine(folderPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                coach.ImagePath = "/images/" + fileName;
+            }
+            else
+            {
+                coach.ImagePath = "/images/default.png";
+            }
+
+            coach.CreatedAt = DateTime.Now;
+            coach.CreatedBy = User.Identity?.Name ?? "Unknown";
+            coach.UserId = user.Id;
+
+            _context.Add(coach);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Coaches/Edit/5
@@ -135,7 +158,7 @@ namespace CoachBookingApp.Controllers
             {
                 try
                 {
-                    // If the user add a new image, ssave it and update ImagePath
+                    // Om usern laddar upp en ny bild, hantera filuppladdningen
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);

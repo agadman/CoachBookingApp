@@ -23,8 +23,9 @@ else
                 <td>@slot.StartTime.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>@slot.EndTime.ToString("HH:mm")</td>
                 <td>
-                    <form asp-controller="Bookings" asp-action="Create" method="post">
-                        <input type="hidden" name="TimeSlotId" value="@slot.Id" />
+                    <form asp-controller="Bookings" asp-action="BookTimeSlot" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="timeSlotId" value="@slot.Id" />
                         <button type="submit" class="btn btn-success">Boka denna tid</button>
                     </form>
                 </td>

@@ -22,10 +22,13 @@
                 <input asp-for="EndTime" class="form-control" />
                 <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CoachId" class="control-label"></label>
-                <select asp-for="CoachId" class ="form-control" asp-items="ViewBag.CoachId"></select>
-            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="form-group">
+                    <label asp-for="CoachId" class="control-label"></label>
+                    <select asp-for="CoachId" class="form-control" asp-items="ViewBag.CoachId"></select>
+                </div>
+            }
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>

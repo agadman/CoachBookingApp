@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CoachBookingApp.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Coach")]
     public class TimeSlotController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,8 +24,28 @@ namespace CoachBookingApp.Controllers
         // GET: TimeSlot
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Timeslots.Include(t => t.Coach);
-            return View(await applicationDbContext.ToListAsync());
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (User.IsInRole("Admin"))
+            {
+                var allSlots = await _context.Timeslots
+                    .Include(t => t.Coach)
+                    .ToListAsync();
+
+                return View(allSlots);
+            }
+
+            if (User.IsInRole("Coach"))
+            {
+                var coachSlots = await _context.Timeslots
+                    .Include(t => t.Coach)
+                    .Where(t => t.Coach.UserId == userId)
+                    .ToListAsync();
+
+                return View(coachSlots);
+            }
+
+            return Forbid();
         }
 
         // GET: TimeSlot/Details/5
@@ -48,9 +68,14 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: TimeSlot/Create
+        [Authorize(Roles = "Admin,Coach")]
         public IActionResult Create()
         {
-            ViewData["CoachId"] = new SelectList(_context.Coaches, "Id", "Name");
+            if (User.IsInRole("Admin"))
+            {
+                ViewData["CoachId"] = new SelectList(_context.Coaches, "Id", "Name");
+            }
+
             return View();
         }
 
@@ -59,32 +84,51 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> Create([Bind("Id,StartTime,EndTime,CoachId")] TimeSlot timeSlot)
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (User.IsInRole("Coach"))
+{
+                var coach = await _context.Coaches
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (coach == null)
+                    return Forbid();
+
+                timeSlot.CoachId = coach.Id;
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(timeSlot);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CoachId"] = new SelectList(_context.Coaches, "Id", "Name", timeSlot.CoachId);
+
             return View(timeSlot);
         }
 
         // GET: TimeSlot/Edit/5
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var timeSlot = await _context.Timeslots.FindAsync(id);
+            var timeSlot = await _context.Timeslots
+                .Include(t => t.Coach)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (timeSlot == null)
-            {
                 return NotFound();
-            }
-            ViewData["CoachId"] = new SelectList(_context.Coaches, "Id", "Name", timeSlot.CoachId);
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+                return Forbid();
+
             return View(timeSlot);
         }
 
@@ -124,21 +168,25 @@ namespace CoachBookingApp.Controllers
             return View(timeSlot);
         }
 
-        // GET: TimeSlot/Delete/5
+       // GET: TimeSlot/Delete/5
+       [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var timeSlot = await _context.Timeslots
                 .Include(t => t.Coach)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (timeSlot == null)
-            {
                 return NotFound();
-            }
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            // Coach får bara sina egna slots
+            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+                return Forbid();
 
             return View(timeSlot);
         }
@@ -146,15 +194,24 @@ namespace CoachBookingApp.Controllers
         // POST: TimeSlot/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var timeSlot = await _context.Timeslots.FindAsync(id);
-            if (timeSlot != null)
-            {
-                _context.Timeslots.Remove(timeSlot);
-            }
+            var timeSlot = await _context.Timeslots
+                .Include(t => t.Coach)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
+            if (timeSlot == null)
+                return NotFound();
+
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+                return Forbid();
+
+            _context.Timeslots.Remove(timeSlot);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -164,3 +221,4 @@ namespace CoachBookingApp.Controllers
         }
     }
 }
+ 
