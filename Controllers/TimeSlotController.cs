@@ -39,7 +39,7 @@ namespace CoachBookingApp.Controllers
             {
                 var coachSlots = await _context.Timeslots
                     .Include(t => t.Coach)
-                    .Where(t => t.Coach.UserId == userId)
+                    .Where(t => t.Coach != null && t.Coach.UserId == userId)
                     .ToListAsync();
 
                 return View(coachSlots);
@@ -126,7 +126,7 @@ namespace CoachBookingApp.Controllers
 
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+            if (User.IsInRole("Coach") && (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
                 return Forbid();
 
             return View(timeSlot);
@@ -185,7 +185,7 @@ namespace CoachBookingApp.Controllers
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             // Coach får bara sina egna slots
-            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+            if (User.IsInRole("Coach") && (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
                 return Forbid();
 
             return View(timeSlot);
@@ -206,7 +206,7 @@ namespace CoachBookingApp.Controllers
 
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (User.IsInRole("Coach") && timeSlot.Coach.UserId != userId)
+            if (User.IsInRole("Coach") && (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
                 return Forbid();
 
             _context.Timeslots.Remove(timeSlot);

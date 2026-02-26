@@ -32,7 +32,7 @@ namespace CoachBookingApp.Controllers
             {
                 var allBookings = await _context.Bookings
                     .Include(b => b.TimeSlot)
-                    .ThenInclude(t => t.Coach)
+                    .ThenInclude(t => t!.Coach)
                     .ToListAsync();
 
                 return View(allBookings);
@@ -42,7 +42,7 @@ namespace CoachBookingApp.Controllers
             {
                 var myBookings = await _context.Bookings
                     .Include(b => b.TimeSlot)
-                    .ThenInclude(t => t.Coach)
+                    .ThenInclude(t => t!.Coach)
                     .Where(b => b.UserId == userId)
                     .ToListAsync();
 
@@ -53,8 +53,8 @@ namespace CoachBookingApp.Controllers
             {
                 var coachBookings = await _context.Bookings
                     .Include(b => b.TimeSlot)
-                    .ThenInclude(t => t.Coach)
-                    .Where(b => b.TimeSlot.Coach.UserId == userId)
+                    .ThenInclude(t => t!.Coach)
+                    .Where(b => b.TimeSlot!.Coach != null && b.TimeSlot.Coach.UserId == userId)
                     .ToListAsync();
 
                 return View(coachBookings);
@@ -72,7 +72,7 @@ namespace CoachBookingApp.Controllers
 
             var booking = await _context.Bookings
                 .Include(b => b.TimeSlot)
-                .ThenInclude(t => t.Coach)
+                .ThenInclude(t => t!.Coach)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null)
@@ -110,7 +110,7 @@ namespace CoachBookingApp.Controllers
             if (User.IsInRole("Coach"))
             {
                 freeSlotsQuery = freeSlotsQuery
-                    .Where(t => t.Coach.UserId == userId);
+                    .Where(t => t.Coach != null && t.Coach.UserId == userId);
             }
 
             var freeSlots = freeSlotsQuery

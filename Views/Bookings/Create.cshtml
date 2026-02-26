@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Create";
-    bool isReadonly = ViewData["IsPrefill"] != null && (bool)ViewData["IsPrefill"];
+    bool isReadonly = ViewData["IsPrefill"] is bool value && value;
 }
 
 <h1>Create</h1>
