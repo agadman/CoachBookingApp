@@ -35,8 +35,7 @@ namespace CoachBookingApp.Models
         public DateTime? CreatedAt { get; set; }
         public string? CreatedBy { get; set; }
        
-        // UserId kopplar Coach till IdentityUser, så man vet vilken användare som är coach
-        public string? UserId { get; set; }
+        public string? UserId { get; set; }  // UserId kopplar Coach till IdentityUser, så man vet vilken användare som är coach
         public IdentityUser? User { get; set; }
 
         public List<TimeSlot>? TimeSlots { get; set; }

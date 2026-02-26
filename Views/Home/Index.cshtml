@@ -17,12 +17,36 @@
                 <h3>@coach.Title</h3>
                 <p>@coach.Bio</p>
 
-                <a asp-controller="Bookings"
-                    asp-action="SelectTime"
-                    asp-route-coachId="@coach.Id"
-                    class="btn btn-primary">
-                        Boka
-                </a>
+
+                    @* EJ INLOGGAD *@
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-area="Identity"
+                           asp-page="/Account/Login"
+                           class="btn btn-outline-primary w-100">
+                            Logga in för att boka
+                        </a>
+                    }
+
+                    @* USER *@
+                    else if (User.IsInRole("User"))
+                    {
+                        <a asp-controller="Bookings"
+                           asp-action="SelectTime"
+                           asp-route-coachId="@coach.Id"
+                           class="btn btn-primary w-100">
+                            Boka
+                        </a>
+                    }
+
+                    @* COACH ELLER ADMIN *@
+                    else if (User.IsInRole("Coach") || User.IsInRole("Admin"))
+                    {
+                        <div class="alert alert-light text-center mb-0">
+                            Bokning hanteras via dashboard
+                        </div>
+                    }
+
             </div>
         </div>
     </div>

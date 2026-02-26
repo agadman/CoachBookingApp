@@ -12,7 +12,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => 
      options.SignIn.RequireConfirmedAccount = false) //Ändra till true i publik applikation
-    .AddRoles<IdentityRole>() 
+    .AddRoles<IdentityRole>() // Här har jag lagt till stöd för roller i Identity
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
@@ -46,6 +46,10 @@ app.MapControllerRoute(
 app.MapRazorPages()
    .WithStaticAssets();
 
+// Här skapar jag en scope för att få tillgång till UserManager och RoleManager.
+// Skapar också rollerna Admin, Coach" och User, om de inte redan finns. 
+// Skapar också en admin-användare om den inte redan finns, och lägger till den i "Admin"-rollen (seedar). 
+// Ser till att alla användare som inte har någon roll får rollen User.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -94,6 +98,5 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-
 
 app.Run();

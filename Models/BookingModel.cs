@@ -15,13 +15,13 @@ namespace CoachBookingApp.Models
         public string CustomerEmail { get; set; } = null!;
 
         [Display(Name = "Status")]
-        public string Status { get; set; } = "Booked"; // Booked, Cancelled, Completed
+        public string Status { get; set; } = "Booked"; // Status ska vara Booked, Cancelled, Completed
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // UtcNow to get local time in UI
 
         [Required]
         public int TimeSlotId { get; set; }
         public TimeSlot? TimeSlot { get; set; }
-        public string? UserId { get; set; } = null!; // from Identity
+        public string? UserId { get; set; } = null!; // Denna FK från Identity
     }
 }
