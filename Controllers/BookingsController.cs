@@ -331,9 +331,19 @@ namespace CoachBookingApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookingExists(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
         {
-            return _context.Bookings.Any(e => e.Id == id);
+            var booking = await _context.Bookings.FindAsync(id);
+            if (booking == null)
+                return NotFound();
+
+            booking.Status = "Cancelled";
+            _context.Update(booking);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         [Authorize]

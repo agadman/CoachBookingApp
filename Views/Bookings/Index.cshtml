@@ -4,7 +4,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Bokningar</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -53,10 +53,10 @@
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 @if (User.IsInRole("Admin") || (User.IsInRole("User") && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
-                    <form asp-action="Delete" method="post" style="display:inline">
+                    <form asp-action="Cancel" method="post" style="display:inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Delete</button>
+                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Cancel</button>
                     </form>
                 }
             </td>

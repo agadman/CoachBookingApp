@@ -1,6 +1,6 @@
 @model IEnumerable<CoachBookingApp.Models.TimeSlot>
 
-<h2>Välj en tid för @ViewData["CoachName"]</h2>
+<h2>Välj en tid för @(Model.FirstOrDefault()?.Coach?.Name ?? "vald coach")</h2>
 
 @if (!Model.Any())
 {
