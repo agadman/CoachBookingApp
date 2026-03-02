@@ -224,6 +224,7 @@ namespace CoachBookingApp.Controllers
 
             var booking = await _context.Bookings
                 .Include(b => b.TimeSlot)
+                .ThenInclude(t => t!.Coach)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null) return NotFound();
@@ -233,16 +234,31 @@ namespace CoachBookingApp.Controllers
             if (User.IsInRole("User") && booking.UserId != userId)
                 return Forbid();
 
-            ViewData["TimeSlotId"] = _context.Timeslots
+            var timeSlotsQuery = _context.Timeslots
                 .Include(t => t.Booking)
+                .Include(t => t.Coach)
+                .AsQueryable();
+
+            if (User.IsInRole("User"))
+            {
+                var currentCoachId = booking.TimeSlot?.CoachId;
+
+                timeSlotsQuery = timeSlotsQuery
+                    .Where(t => t.CoachId == currentCoachId);
+            }
+
+            timeSlotsQuery = timeSlotsQuery
                 .Where(t => t.Booking == null || t.Id == booking.TimeSlotId)
-                .OrderBy(t => t.StartTime)
+                .OrderBy(t => t.StartTime);
+
+            ViewData["TimeSlotId"] = await timeSlotsQuery
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
-                    Text = t.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                    Text = $"{t.Coach!.Name} - {t.StartTime:yyyy-MM-dd HH:mm}",
                     Selected = t.Id == booking.TimeSlotId
-                }).ToList();
+                })
+                .ToListAsync();
 
             return View(booking);
         }
@@ -258,31 +274,41 @@ namespace CoachBookingApp.Controllers
             if (id != booking.Id) return NotFound();
 
             var existingBooking = await _context.Bookings
+                .Include(b => b.TimeSlot)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (existingBooking == null) return NotFound();
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Users får bara ändra sina egna bokningar
             if (User.IsInRole("User") && existingBooking.UserId != userId)
                 return Forbid();
 
-            // Kontrollera om ny tid är ledig
             var newSlot = await _context.Timeslots
                 .Include(t => t.Booking)
                 .FirstOrDefaultAsync(t => t.Id == booking.TimeSlotId);
 
-            if (newSlot == null || (newSlot.Booking != null && newSlot.Id != existingBooking.TimeSlotId))
+            if (newSlot == null ||
+                (newSlot.Booking != null && newSlot.Id != existingBooking.TimeSlotId))
             {
                 ModelState.AddModelError("TimeSlotId", "Denna tid är redan bokad.");
+            }
+
+            // 🔒 EXTRA SÄKERHET
+            if (User.IsInRole("User"))
+            {
+                var currentCoachId = existingBooking.TimeSlot?.CoachId;
+
+                if (newSlot?.CoachId != currentCoachId)
+                {
+                    return Forbid();
+                }
             }
 
             if (ModelState.IsValid)
             {
                 existingBooking.TimeSlotId = booking.TimeSlotId;
 
-                // Admin kan ändra namn, email och status
                 if (User.IsInRole("Admin"))
                 {
                     existingBooking.CustomerName = booking.CustomerName;
@@ -291,20 +317,35 @@ namespace CoachBookingApp.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["TimeSlotId"] = _context.Timeslots
+            // Bygg dropdown igen vid fel
+            var timeSlotsQuery = _context.Timeslots
                 .Include(t => t.Booking)
+                .Include(t => t.Coach)
+                .AsQueryable();
+
+            if (User.IsInRole("User"))
+            {
+                var currentCoachId = existingBooking.TimeSlot?.CoachId;
+
+                timeSlotsQuery = timeSlotsQuery
+                    .Where(t => t.CoachId == currentCoachId);
+            }
+
+            timeSlotsQuery = timeSlotsQuery
                 .Where(t => t.Booking == null || t.Id == existingBooking.TimeSlotId)
-                .OrderBy(t => t.StartTime)
+                .OrderBy(t => t.StartTime);
+
+            ViewData["TimeSlotId"] = await timeSlotsQuery
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
-                    Text = t.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                    Text = $"{t.Coach!.Name} - {t.StartTime:yyyy-MM-dd HH:mm}",
                     Selected = t.Id == existingBooking.TimeSlotId
-                }).ToList();
+                })
+                .ToListAsync();
 
             return View(booking);
         }

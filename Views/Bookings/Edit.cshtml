@@ -15,19 +15,51 @@
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
                 <label asp-for="CustomerName" class="control-label"></label>
-                <input asp-for="CustomerName" class="form-control" />
-                <span asp-validation-for="CustomerName" class="text-danger"></span>
+                @if (User.IsInRole("Admin") || User.IsInRole("Coach")) 
+                {
+                    <input asp-for="CustomerName" class="form-control" />
+                    <span asp-validation-for="CustomerName" class="text-danger"></span> 
+                } 
+                else 
+                {
+                    <input class="form-control" value="@Model.CustomerName" disabled />
+                    <input type="hidden" asp-for="CustomerName" /> <!-- Skicka med värdet i det dolda fältet -->
+                } 
             </div>
             <div class="form-group">
                 <label asp-for="CustomerEmail" class="control-label"></label>
-                <input asp-for="CustomerEmail" class="form-control" />
-                <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                @if (User.IsInRole("Admin") || User.IsInRole("Coach")) 
+                {
+                    <input asp-for="CustomerEmail" class="form-control" />
+                    <span asp-validation-for="CustomerEmail" class="text-danger"></span> 
+                } 
+                else 
+                {
+                    <input class="form-control" value="@Model.CustomerEmail" disabled />
+                    <input type="hidden" asp-for="CustomerEmail" /> <!-- Skicka med värdet i det dolda fältet -->
+                }
             </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Coach"))
+            {
+                <div class="form-group">
+                    <label asp-for="Status" class="control-label"></label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Booked">Booked</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="No show">No show</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <label>Status</label>
+                    <input class="form-control" value="@Model.Status" disabled />
+                </div>
+                <button type="submit" name="action" value="cancel" class="btn btn-warning mt-2">Avboka</button>
+            }
             <div class="form-group">
                 <label asp-for="TimeSlotId"></label>
                 <select asp-for="TimeSlotId"

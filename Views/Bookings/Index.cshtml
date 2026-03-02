@@ -4,11 +4,23 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Bokningar</h1>
+@if (User.IsInRole("Admin"))
+{
+    <h1>Bokningar</h1>
+}
+else 
+{
+    <h1>Mina Bokningar</h1>
+}
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+
+@if (User.IsInRole("Admin") || User.IsInRole("Coach"))
+{
+    <p>
+        <a asp-action="Create">Skapa ny bokning</a>
+    </p>
+}
+
 <table class="table">
     <thead>
         <tr>
