@@ -1,4 +1,5 @@
 @model IEnumerable<CoachBookingApp.Models.TimeSlot>
+@using CoachBookingApp.Extensions
 
 <h2>Välj en tid för @(Model.FirstOrDefault()?.Coach?.Name ?? "vald coach")</h2>
 
@@ -20,8 +21,8 @@ else
         @foreach (var slot in Model)
         {
             <tr>
-                <td>@slot.StartTime.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@slot.EndTime.ToString("HH:mm")</td>
+                <td>@slot.StartTime.ToSwedishTime()</td>
+                <td>@slot.EndTime.ToSwedishTime("HH:mm")</td>
                 <td>
                     <form asp-controller="Bookings" asp-action="BookTimeSlot" method="post">
                         @Html.AntiForgeryToken()

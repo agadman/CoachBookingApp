@@ -1,4 +1,5 @@
 @model IEnumerable<TimeSlot>
+@using CoachBookingApp.Extensions
 
 @{
     ViewData["Title"] = "Index";
@@ -28,10 +29,10 @@
         @foreach (var item in Model) {
                 <tr>
                     <td>
-                        @Html.DisplayFor(modelItem => item.StartTime)
+                        @item.StartTime.ToSwedishTime()
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.EndTime)
+                        @item.EndTime.ToSwedishTime()
                     </td>
                     <td>
                         @item.Coach?.Name

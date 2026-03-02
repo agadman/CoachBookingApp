@@ -9,6 +9,7 @@ using CoachBookingApp.Data;
 using CoachBookingApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using CoachBookingApp.Extensions;
 
 namespace CoachBookingApp.Controllers
 {
@@ -120,7 +121,7 @@ namespace CoachBookingApp.Controllers
             ViewData["TimeSlotId"] = freeSlots.Select(t => new SelectListItem
             {
                 Value = t.Id.ToString(),
-                Text = t.Coach!.Name + " - " + t.StartTime.ToString("yyyy-MM-dd HH:mm")
+                Text = t.Coach!.Name + " - " + t.StartTime.ToSwedishTime()
             }).ToList();
 
             var booking = new Booking();
@@ -217,7 +218,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings/Edit/5
-        [Authorize(Roles = "Admin,User")]
+        [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -234,6 +235,9 @@ namespace CoachBookingApp.Controllers
             if (User.IsInRole("User") && booking.UserId != userId)
                 return Forbid();
 
+            if (User.IsInRole("Coach") && booking.TimeSlot?.Coach?.UserId != userId)
+                return Forbid();
+
             var timeSlotsQuery = _context.Timeslots
                 .Include(t => t.Booking)
                 .Include(t => t.Coach)
@@ -247,6 +251,13 @@ namespace CoachBookingApp.Controllers
                     .Where(t => t.CoachId == currentCoachId);
             }
 
+            if (User.IsInRole("Coach"))
+            {
+                var coachId = booking.TimeSlot?.CoachId;
+                timeSlotsQuery = timeSlotsQuery
+                    .Where(t => t.CoachId == coachId);
+            }
+
             timeSlotsQuery = timeSlotsQuery
                 .Where(t => t.Booking == null || t.Id == booking.TimeSlotId)
                 .OrderBy(t => t.StartTime);
@@ -255,7 +266,7 @@ namespace CoachBookingApp.Controllers
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
-                    Text = $"{t.Coach!.Name} - {t.StartTime:yyyy-MM-dd HH:mm}",
+                    Text = $"{t.Coach!.Name} - {t.StartTime.ToSwedishTime()}",
                     Selected = t.Id == booking.TimeSlotId
                 })
                 .ToListAsync();
@@ -268,13 +279,14 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,User")]
+        [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,CustomerName,CustomerEmail,Status,TimeSlotId")] Booking booking)
         {
             if (id != booking.Id) return NotFound();
 
             var existingBooking = await _context.Bookings
                 .Include(b => b.TimeSlot)
+                .ThenInclude(t => t!.Coach)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (existingBooking == null) return NotFound();
@@ -282,6 +294,9 @@ namespace CoachBookingApp.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (User.IsInRole("User") && existingBooking.UserId != userId)
+                return Forbid();
+            
+            if (User.IsInRole("Coach") && existingBooking.TimeSlot?.Coach?.UserId != userId)
                 return Forbid();
 
             var newSlot = await _context.Timeslots
@@ -294,11 +309,19 @@ namespace CoachBookingApp.Controllers
                 ModelState.AddModelError("TimeSlotId", "Denna tid är redan bokad.");
             }
 
-            // 🔒 EXTRA SÄKERHET
             if (User.IsInRole("User"))
             {
                 var currentCoachId = existingBooking.TimeSlot?.CoachId;
 
+                if (newSlot?.CoachId != currentCoachId)
+                {
+                    return Forbid();
+                }
+            }
+
+            if (User.IsInRole("Coach"))
+            {
+                var currentCoachId = existingBooking.TimeSlot?.CoachId;
                 if (newSlot?.CoachId != currentCoachId)
                 {
                     return Forbid();
@@ -320,7 +343,7 @@ namespace CoachBookingApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Bygg dropdown igen vid fel
+            // Bygger dropdown igen vid fel
             var timeSlotsQuery = _context.Timeslots
                 .Include(t => t.Booking)
                 .Include(t => t.Coach)
@@ -334,6 +357,13 @@ namespace CoachBookingApp.Controllers
                     .Where(t => t.CoachId == currentCoachId);
             }
 
+            if (User.IsInRole("Coach"))
+{
+                var coachId = existingBooking.TimeSlot?.CoachId;
+                timeSlotsQuery = timeSlotsQuery
+                    .Where(t => t.CoachId == coachId);
+            }
+
             timeSlotsQuery = timeSlotsQuery
                 .Where(t => t.Booking == null || t.Id == existingBooking.TimeSlotId)
                 .OrderBy(t => t.StartTime);
@@ -342,7 +372,7 @@ namespace CoachBookingApp.Controllers
                 .Select(t => new SelectListItem
                 {
                     Value = t.Id.ToString(),
-                    Text = $"{t.Coach!.Name} - {t.StartTime:yyyy-MM-dd HH:mm}",
+                    Text = $"{t.Coach!.Name} - {t.StartTime.ToSwedishTime()}",
                     Selected = t.Id == existingBooking.TimeSlotId
                 })
                 .ToListAsync();
@@ -353,7 +383,7 @@ namespace CoachBookingApp.Controllers
         // POST: Bookings/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,User")]
+        [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Delete(int id)
         {
             var booking = await _context.Bookings
@@ -364,6 +394,9 @@ namespace CoachBookingApp.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (User.IsInRole("User") && booking.UserId != userId)
+                return Forbid();
+            
+            if (User.IsInRole("Coach") && booking.TimeSlot?.Coach?.UserId != userId)
                 return Forbid();
 
             _context.Bookings.Remove(booking);

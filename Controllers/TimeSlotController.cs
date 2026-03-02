@@ -101,7 +101,12 @@ namespace CoachBookingApp.Controllers
             }
 
             if (ModelState.IsValid)
-            {
+{
+                // Konverterar från svensk tid till UTC innan det sparas i databasen
+                var swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                timeSlot.StartTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.StartTime, swedenTimeZone);
+                timeSlot.EndTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.EndTime, swedenTimeZone);
+
                 _context.Add(timeSlot);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -148,6 +153,11 @@ namespace CoachBookingApp.Controllers
             {
                 try
                 {
+                    // Konverterar från svensk tid till UTC innan uppdatering till databasen
+                    var swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                    timeSlot.StartTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.StartTime, swedenTimeZone);
+                    timeSlot.EndTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.EndTime, swedenTimeZone);
+
                     _context.Update(timeSlot);
                     await _context.SaveChangesAsync();
                 }

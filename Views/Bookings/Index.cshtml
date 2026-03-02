@@ -1,4 +1,5 @@
 @model IEnumerable<CoachBookingApp.Models.Booking>
+@using CoachBookingApp.Extensions
 
 @{
     ViewData["Title"] = "Index";
@@ -75,20 +76,24 @@ else
             }
 
             <td>
-                @(item.TimeSlot != null
-                    ? item.TimeSlot.StartTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                @(item.TimeSlot != null 
+                    ? item.TimeSlot.StartTime.ToSwedishTime() 
                     : "")
             </td>
 
             <td>@item.Status</td>
 
-            <td>@item.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+            <td>
+                @item.CreatedAt.ToSwedishTime()
+            </td>
 
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
 
-                @if (isAdmin || (isUser && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                @if (isAdmin || 
+                    (isUser && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value) ||
+                    (isCoach && item.TimeSlot?.Coach?.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
                     <form asp-action="Cancel" method="post" style="display:inline">
                         @Html.AntiForgeryToken()
@@ -97,7 +102,6 @@ else
                     </form>
                 }
             </td>
-
         </tr>
     }
     </tbody>
