@@ -2,9 +2,13 @@
 
 @{
     ViewData["Title"] = "Index";
+
+    var isAdmin = User.IsInRole("Admin");
+    var isCoach = User.IsInRole("Coach");   
+    var isUser = User.IsInRole("User");
 }
 
-@if (User.IsInRole("Admin"))
+@if (isAdmin)
 {
     <h1>Bokningar</h1>
 }
@@ -14,7 +18,7 @@ else
 }
 
 
-@if (User.IsInRole("Admin") || User.IsInRole("Coach"))
+@if (isAdmin || isCoach)
 {
     <p>
         <a asp-action="Create">Skapa ny bokning</a>
@@ -24,46 +28,67 @@ else
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerEmail)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>Starttid</th>
+            @if (isUser)
+            {
+                <th>Coach</th>
+            }
+
+            @if (isCoach)
+            {
+                <th>Kund</th>
+                <th>Email</th>
+            }
+
+            @if (isAdmin)
+            {
+                <th>Kund</th>
+                <th>Email</th>
+                <th>Coach</th>
+            }
+
+            <th>Dag & Tid</th>
+            <th>Status</th>
+            <th>Bokade den</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model)
+    {
         <tr>
+            @if (isUser)
+            {
+                <td>@item.TimeSlot?.Coach?.Name</td>
+            }
+
+            @if (isCoach)
+            {
+                <td>@item.CustomerName</td>
+                <td>@item.CustomerEmail</td>
+            }
+
+            @if (isAdmin)
+            {
+                <td>@item.CustomerName</td>
+                <td>@item.CustomerEmail</td>
+                <td>@item.TimeSlot?.Coach?.Name</td>
+            }
+
             <td>
-                @Html.DisplayFor(modelItem => item.CustomerName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerEmail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @(item.TimeSlot != null 
-                    ? item.TimeSlot.StartTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm") 
+                @(item.TimeSlot != null
+                    ? item.TimeSlot.StartTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
                     : "")
             </td>
+
+            <td>@item.Status</td>
+
+            <td>@item.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                @if (User.IsInRole("Admin") || (User.IsInRole("User") && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+
+                @if (isAdmin || (isUser && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
                     <form asp-action="Cancel" method="post" style="display:inline">
                         @Html.AntiForgeryToken()
@@ -72,7 +97,8 @@ else
                     </form>
                 }
             </td>
+
         </tr>
-}
+    }
     </tbody>
 </table>
