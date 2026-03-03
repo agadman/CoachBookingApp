@@ -116,7 +116,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: TimeSlot/Edit/5
-        [Authorize(Roles = "Admin,Coach")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -133,6 +133,11 @@ namespace CoachBookingApp.Controllers
 
             if (User.IsInRole("Coach") && (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
                 return Forbid();
+            
+            if (User.IsInRole("Admin"))
+            {
+                ViewBag.CoachId = new SelectList(_context.Coaches, "Id", "Name", timeSlot.CoachId);
+            }
 
             return View(timeSlot);
         }
@@ -142,40 +147,33 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,StartTime,EndTime,CoachId")] TimeSlot timeSlot)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, TimeSlot updatedTimeSlot)
         {
-            if (id != timeSlot.Id)
-            {
+            if (id != updatedTimeSlot.Id)
                 return NotFound();
-            }
+
+            var timeSlot = await _context.Timeslots
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (timeSlot == null)
+                return NotFound();
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    // Konverterar från svensk tid till UTC innan uppdatering till databasen
-                    var swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-                    timeSlot.StartTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.StartTime, swedenTimeZone);
-                    timeSlot.EndTime = TimeZoneInfo.ConvertTimeToUtc(timeSlot.EndTime, swedenTimeZone);
+                var swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
 
-                    _context.Update(timeSlot);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TimeSlotExists(timeSlot.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                timeSlot.StartTime = TimeZoneInfo.ConvertTimeToUtc(updatedTimeSlot.StartTime, swedenTimeZone);
+                timeSlot.EndTime = TimeZoneInfo.ConvertTimeToUtc(updatedTimeSlot.EndTime, swedenTimeZone);
+                timeSlot.CoachId = updatedTimeSlot.CoachId;
+
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CoachId"] = new SelectList(_context.Coaches, "Id", "Name", timeSlot.CoachId);
-            return View(timeSlot);
+
+            ViewBag.CoachId = new SelectList(_context.Coaches, "Id", "Name", updatedTimeSlot.CoachId);
+            return View(updatedTimeSlot);
         }
 
        // GET: TimeSlot/Delete/5
@@ -209,6 +207,7 @@ namespace CoachBookingApp.Controllers
         {
             var timeSlot = await _context.Timeslots
                 .Include(t => t.Coach)
+                .Include(t => t.Booking) // För att kontrollera om det finns en bokning kopplad till denna tid
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (timeSlot == null)
@@ -216,8 +215,17 @@ namespace CoachBookingApp.Controllers
 
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (User.IsInRole("Coach") && (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
+            // Coach får bara ta bort sina egna timeslots
+            if (User.IsInRole("Coach") &&
+                (timeSlot.Coach == null || timeSlot.Coach.UserId != userId))
                 return Forbid();
+
+            // Förhindra delete om bokning finns
+            if (timeSlot.Booking != null)
+            {
+                ModelState.AddModelError("", "Denna tid har redan en bokning och kan inte tas bort.");
+                return View(timeSlot); // Visa Delete-vyn igen
+            }
 
             _context.Timeslots.Remove(timeSlot);
             await _context.SaveChangesAsync();

@@ -1,42 +1,46 @@
 @model TimeSlot
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit TimeSlot";
 }
 
-<h1>Edit</h1>
+<h1>Edit TimeSlot</h1>
 
-<h4>TimeSlot</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label"></label>
-                <input asp-for="StartTime" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="StartTime" class="form-label"></label>
+                <input asp-for="StartTime" class="form-control" type="datetime-local" />
                 <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label"></label>
-                <input asp-for="EndTime" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="EndTime" class="form-label"></label>
+                <input asp-for="EndTime" class="form-control" type="datetime-local" />
                 <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CoachId" class="control-label"></label>
-                <select asp-for="CoachId" class="form-control" asp-items="ViewBag.CoachId"></select>
+
+            <div class="form-group mb-3">
+                <label asp-for="CoachId" class="form-label"></label>
+                <select asp-for="CoachId"
+                        class="form-select"
+                        asp-items="ViewBag.CoachId">
+                </select>
                 <span asp-validation-for="CoachId" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

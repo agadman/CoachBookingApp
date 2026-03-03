@@ -217,12 +217,25 @@ namespace CoachBookingApp.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var coach = await _context.Coaches.FindAsync(id);
-            if (coach != null)
+
+            if (coach == null)
+                return NotFound();
+
+            // Kolla om coachen har några timeslots
+            bool hasTimeSlots = await _context.Timeslots
+                .AnyAsync(t => t.CoachId == id);
+
+            if (hasTimeSlots)
             {
-                _context.Coaches.Remove(coach);
+                ModelState.AddModelError("",
+                    "Denna coach har schemalagda tider eller bokningar och kan inte tas bort.");
+
+                return View(coach);
             }
 
+            _context.Coaches.Remove(coach);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
