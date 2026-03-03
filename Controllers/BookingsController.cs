@@ -102,11 +102,12 @@ namespace CoachBookingApp.Controllers
         public IActionResult Create(int? timeSlotId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var nowUtc = DateTime.UtcNow;
 
             var freeSlotsQuery = _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
-                .Where(t => t.Booking == null && t.StartTime > DateTime.Now);
+                .Where(t => t.Booking == null && t.StartTime >= nowUtc); 
 
             if (User.IsInRole("Coach"))
             {
@@ -121,7 +122,7 @@ namespace CoachBookingApp.Controllers
             ViewData["TimeSlotId"] = freeSlots.Select(t => new SelectListItem
             {
                 Value = t.Id.ToString(),
-                Text = t.Coach!.Name + " - " + t.StartTime.ToSwedishTime()
+                Text = $"{t.Coach!.Name} - {t.StartTime.ToSwedishTime()}"
             }).ToList();
 
             var booking = new Booking();
@@ -336,6 +337,10 @@ namespace CoachBookingApp.Controllers
                 {
                     existingBooking.CustomerName = booking.CustomerName;
                     existingBooking.CustomerEmail = booking.CustomerEmail;
+                    existingBooking.Status = booking.Status;
+                } 
+                else if (User.IsInRole("Coach"))
+                {
                     existingBooking.Status = booking.Status;
                 }
 
