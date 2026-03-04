@@ -3,9 +3,19 @@
 
 @{
     ViewData["Title"] = "Index";
+
+    var isAdmin = User.IsInRole("Admin");
+    var isCoach = User.IsInRole("Coach");
 }
 
-<h1>Mina tider</h1>
+@if (isAdmin)
+{
+    <h1>Tider</h1>
+}
+else 
+{
+    <h1>Mina Tider</h1>
+}
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -22,6 +32,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Coach)
             </th>
+            <th>Status</th>
             <th></th>
         </tr>
     </thead>
@@ -37,6 +48,16 @@
                     <td>
                         @item.Coach?.Name
                     </td>
+                    <td>
+                        @if (item.Booking != null)
+                        {
+                            <span class="text-danger">Bokad</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">Ledig</span>
+                        }
+                    </td>     
                     <td>
                         @if (User.IsInRole("Admin"))
                         {

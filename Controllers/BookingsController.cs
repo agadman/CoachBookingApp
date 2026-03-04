@@ -248,8 +248,10 @@ namespace CoachBookingApp.Controllers
                     .Where(t => t.CoachId == coachId);
             }
 
+            var nowUtc = DateTime.UtcNow;
+
             timeSlotsQuery = timeSlotsQuery
-                .Where(t => t.Booking == null || t.Id == booking.TimeSlotId)
+                .Where(t => (t.Booking == null || t.Id == booking.TimeSlotId) && t.StartTime >= nowUtc)
                 .OrderBy(t => t.StartTime);
 
             ViewData["TimeSlotId"] = await timeSlotsQuery
@@ -416,13 +418,15 @@ namespace CoachBookingApp.Controllers
         [Authorize]
         public async Task<IActionResult> SelectTime(int coachId)
         {
+            var nowUtc = DateTime.UtcNow;
+
             var times = await _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
                 .Where(t =>
                     t.CoachId == coachId &&
                     t.Booking == null &&
-                    t.StartTime > DateTime.Now)
+                    t.StartTime > nowUtc)
                 .OrderBy(t => t.StartTime)
                 .ToListAsync();
 

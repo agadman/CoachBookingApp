@@ -30,6 +30,7 @@ namespace CoachBookingApp.Controllers
             {
                 var allSlots = await _context.Timeslots
                     .Include(t => t.Coach)
+                    .Include(t => t.Booking)
                     .ToListAsync();
 
                 return View(allSlots);
@@ -39,6 +40,7 @@ namespace CoachBookingApp.Controllers
             {
                 var coachSlots = await _context.Timeslots
                     .Include(t => t.Coach)
+                    .Include(t => t.Booking)
                     .Where(t => t.Coach != null && t.Coach.UserId == userId)
                     .ToListAsync();
 
