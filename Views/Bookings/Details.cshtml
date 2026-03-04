@@ -5,51 +5,89 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Bokningsdetaljer</h1>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
 
 <div>
-    <h4>Booking</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerEmail)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerEmail)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Model.CreatedAt.ToSwedishTime()
-        </dd>
+
+        <dt class="col-sm-2">Kund</dt>
+        <dd class="col-sm-10">@Model.CustomerName</dd>
+
+        <dt class="col-sm-2">Email till kund</dt>
+        <dd class="col-sm-10">@Model.CustomerEmail</dd>
+
         <dt class="col-sm-2">
-            Starttid
+            Coach
         </dt>
+        <dd class="col-sm-10">
+            @Model.TimeSlot?.Coach?.Name
+        </dd>
+
+        <dt class="col-sm-2">Bokningsdatum</dt>
+        <dd class="col-sm-10">@Model.CreatedAt.ToSwedishTime()</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">
+            <span class="fw-bold 
+                @(Model.Status == "Booked" ? "text-success" : "text-danger")">
+                @Model.Status
+            </span>
+        </dd>
+
+        <dt class="col-sm-2">Starttid</dt>
         <dd class="col-sm-10">
             @Model.TimeSlot?.StartTime.ToSwedishTime()
         </dd>
-        <dt class="col-sm-2">
-            Sluttid
-        </dt>
+
+        <dt class="col-sm-2">Sluttid</dt>
         <dd class="col-sm-10">
-            @Model.TimeSlot?.EndTime.ToSwedishTime("HH:mm")
-        </dd>    
+            @Model.TimeSlot?.EndTime.ToSwedishTime()
+        </dd>
+
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+    @* Admin/Coach får Edit *@
+    @if ((User.IsInRole("Admin") || User.IsInRole("Coach")) 
+        && Model.Status == "Booked")
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" 
+           class="btn btn-warning">Edit</a>
+    }
+
+    @* User får bara Cancel *@
+    @if (User.IsInRole("User") && Model.Status == "Booked")
+    {
+        <form asp-action="Cancel" method="post" 
+              style="display:inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" 
+                    class="btn btn-danger"
+                    onclick="return confirm('Är du säker?')">
+                Avboka
+            </button>
+        </form>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Tillbaka till bokningar
+    </a>
 </div>

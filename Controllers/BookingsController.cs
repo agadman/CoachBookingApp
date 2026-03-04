@@ -219,7 +219,7 @@ namespace CoachBookingApp.Controllers
         }
 
         // GET: Bookings/Edit/5
-        [Authorize(Roles = "Admin,Coach,User")]
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -233,9 +233,6 @@ namespace CoachBookingApp.Controllers
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (User.IsInRole("User") && booking.UserId != userId)
-                return Forbid();
-
             if (User.IsInRole("Coach") && booking.TimeSlot?.Coach?.UserId != userId)
                 return Forbid();
 
@@ -243,14 +240,6 @@ namespace CoachBookingApp.Controllers
                 .Include(t => t.Booking)
                 .Include(t => t.Coach)
                 .AsQueryable();
-
-            if (User.IsInRole("User"))
-            {
-                var currentCoachId = booking.TimeSlot?.CoachId;
-
-                timeSlotsQuery = timeSlotsQuery
-                    .Where(t => t.CoachId == currentCoachId);
-            }
 
             if (User.IsInRole("Coach"))
             {
@@ -280,7 +269,7 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Coach,User")]
+        [Authorize(Roles = "Admin,Coach")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,CustomerName,CustomerEmail,Status,TimeSlotId")] Booking booking)
         {
             if (id != booking.Id) return NotFound();
@@ -293,9 +282,6 @@ namespace CoachBookingApp.Controllers
             if (existingBooking == null) return NotFound();
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (User.IsInRole("User") && existingBooking.UserId != userId)
-                return Forbid();
             
             if (User.IsInRole("Coach") && existingBooking.TimeSlot?.Coach?.UserId != userId)
                 return Forbid();
@@ -304,20 +290,9 @@ namespace CoachBookingApp.Controllers
                 .Include(t => t.Booking)
                 .FirstOrDefaultAsync(t => t.Id == booking.TimeSlotId);
 
-            if (newSlot == null ||
-                (newSlot.Booking != null && newSlot.Id != existingBooking.TimeSlotId))
+            if (newSlot == null || (newSlot.Booking != null && newSlot.Id != existingBooking.TimeSlotId))
             {
                 ModelState.AddModelError("TimeSlotId", "Denna tid är redan bokad.");
-            }
-
-            if (User.IsInRole("User"))
-            {
-                var currentCoachId = existingBooking.TimeSlot?.CoachId;
-
-                if (newSlot?.CoachId != currentCoachId)
-                {
-                    return Forbid();
-                }
             }
 
             if (User.IsInRole("Coach"))
@@ -354,16 +329,8 @@ namespace CoachBookingApp.Controllers
                 .Include(t => t.Coach)
                 .AsQueryable();
 
-            if (User.IsInRole("User"))
-            {
-                var currentCoachId = existingBooking.TimeSlot?.CoachId;
-
-                timeSlotsQuery = timeSlotsQuery
-                    .Where(t => t.CoachId == currentCoachId);
-            }
-
             if (User.IsInRole("Coach"))
-{
+            {
                 var coachId = existingBooking.TimeSlot?.CoachId;
                 timeSlotsQuery = timeSlotsQuery
                     .Where(t => t.CoachId == coachId);
@@ -412,16 +379,37 @@ namespace CoachBookingApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Cancel(int id)
         {
-            var booking = await _context.Bookings.FindAsync(id);
+            var booking = await _context.Bookings
+                .Include(b => b.TimeSlot)
+                .ThenInclude(ts => ts.Coach)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
             if (booking == null)
                 return NotFound();
 
+            if (booking.Status != "Booked")
+            {
+                TempData["ErrorMessage"] =
+                    "Endast bokningar med status 'Booked' kan avbokas.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var isAdmin = User.IsInRole("Admin");
+            var isOwner = booking.UserId == userId;
+            var isCoach = booking.TimeSlot?.Coach?.UserId == userId;
+
+            if (!isAdmin && !isOwner && !isCoach)
+                return Forbid();
+
             booking.Status = "Cancelled";
-            _context.Update(booking);
             await _context.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "Bokningen avbokades.";
             return RedirectToAction(nameof(Index));
         }
 

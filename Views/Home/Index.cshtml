@@ -4,7 +4,14 @@
     ViewData["Title"] = "Home Page";
 }
 
-<h1>Våra coacher</h1>
+<div class="hero position-relative text-center text-white mb-5" style="background:url('/images/hero.jpg') center/cover no-repeat; height:350px;">
+    <div class="hero-overlay d-flex flex-column justify-content-center align-items-center h-100 bg-dark bg-opacity-50">
+        <h1 class="display-4 fw-bold">CoachBookingApp</h1>
+        <p class="lead">Lite info kommer här snart....</p>
+    </div>
+</div>
+
+<h2 class="mb-4 text-center">Våra coacher</h2>
 
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 @foreach (var coach in Model)

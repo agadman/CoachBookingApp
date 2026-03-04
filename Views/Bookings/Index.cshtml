@@ -7,6 +7,10 @@
     var isAdmin = User.IsInRole("Admin");
     var isCoach = User.IsInRole("Coach");   
     var isUser = User.IsInRole("User");
+
+    var sortedBookings = Model.OrderBy(b => b.TimeSlot?.StartTime).ToList();
+    var booked = sortedBookings.Where(b => b.Status == "Booked").ToList();
+    var otherStatuses = sortedBookings.Where(b => b.Status != "Booked").ToList();
 }
 
 @if (isAdmin)
@@ -26,83 +30,187 @@ else
     </p>
 }
 
-<table class="table">
-    <thead>
-        <tr>
-            @if (isUser)
-            {
-                <th>Coach</th>
-            }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
 
-            @if (isCoach)
-            {
-                <th>Kund</th>
-                <th>Email</th>
-            }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+<!-- Här är de aktiva bokningarna (ej genomförda) -->
+<h3 class="mt-5">Aktiva bokningar</h3>
 
-            @if (isAdmin)
-            {
-                <th>Kund</th>
-                <th>Email</th>
-                <th>Coach</th>
-            }
-
-            <th>Dag & Tid</th>
-            <th>Status</th>
-            <th>Bokade den</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            @if (isUser)
-            {
-                <td>@item.TimeSlot?.Coach?.Name</td>
-            }
-
-            @if (isCoach)
-            {
-                <td>@item.CustomerName</td>
-                <td>@item.CustomerEmail</td>
-            }
-
-            @if (isAdmin)
-            {
-                <td>@item.CustomerName</td>
-                <td>@item.CustomerEmail</td>
-                <td>@item.TimeSlot?.Coach?.Name</td>
-            }
-
-            <td>
-                @(item.TimeSlot != null 
-                    ? item.TimeSlot.StartTime.ToSwedishTime() 
-                    : "")
-            </td>
-
-            <td>@item.Status</td>
-
-            <td>
-                @item.CreatedAt.ToSwedishTime()
-            </td>
-
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-
-                @if (isAdmin || 
-                    (isUser && item.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value) ||
-                    (isCoach && item.TimeSlot?.Coach?.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+@if (booked.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                @if (isUser)
                 {
-                    <form asp-action="Cancel" method="post" style="display:inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">Cancel</button>
-                    </form>
+                    <th>Coach</th>
                 }
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+
+                @if (isCoach)
+                {
+                    <th>Kund</th>
+                    <th>Email</th>
+                }
+
+                @if (isAdmin)
+                {
+                    <th>Kund</th>
+                    <th>Email</th>
+                    <th>Coach</th>
+                }
+
+                <th>Starttid</th>
+                <th>Sluttid</th>
+                <th>Status</th>
+                <th class="text-end"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in booked)
+        {
+            <tr>
+                @if (isUser)
+                {
+                    <td>@item.TimeSlot?.Coach?.Name</td>
+                }
+
+                @if (isCoach)
+                {
+                    <td>@item.CustomerName</td>
+                    <td>@item.CustomerEmail</td>
+                }
+
+                @if (isAdmin)
+                {
+                    <td>@item.CustomerName</td>
+                    <td>@item.CustomerEmail</td>
+                    <td>@item.TimeSlot?.Coach?.Name</td>
+                }
+
+                    <td>
+                        @(item.TimeSlot != null 
+                            ? item.TimeSlot.StartTime.ToSwedishTime() 
+                            : "")
+                    </td>
+
+                    <td>
+                        @(item.TimeSlot != null 
+                            ? item.TimeSlot.EndTime.ToSwedishTime() 
+                            : "")
+                    </td>
+
+                <td>@item.Status</td>
+
+                <td class="text-end">
+                    @if (isAdmin || isCoach)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    }
+
+                    <a asp-action="Details" asp-route-id="@item.Id" class="ms-2">Details</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Inga aktiva bokningar.</p>
+}
+
+<!-- Här är de tidigare bokningarna (status: Cancelled, NoShow, completed) -->
+<h3 class="mt-5">Tidigare bokningar</h3>
+
+@if (otherStatuses.Any())
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                @if (isUser)
+                {
+                    <th>Coach</th>
+                }
+
+                @if (isCoach)
+                {
+                    <th>Kund</th>
+                    <th>Email</th>
+                }
+
+                @if (isAdmin)
+                {
+                    <th>Kund</th>
+                    <th>Email</th>
+                    <th>Coach</th>
+                }
+
+                <th>Starttid</th>
+                <th>Sluttid</th>
+                <th>Status</th>
+                <th class="text-end"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in otherStatuses)
+        {
+            <tr class=" table-light text-muted">
+                @if (isUser)
+                {
+                    <td>@item.TimeSlot?.Coach?.Name</td>
+                }
+
+                @if (isCoach)
+                {
+                    <td>@item.CustomerName</td>
+                    <td>@item.CustomerEmail</td>
+                }
+
+                @if (isAdmin)
+                {
+                    <td>@item.CustomerName</td>
+                    <td>@item.CustomerEmail</td>
+                    <td>@item.TimeSlot?.Coach?.Name</td>
+                }
+
+                <td>
+                    @(item.TimeSlot != null 
+                        ? item.TimeSlot.StartTime.ToSwedishTime() 
+                        : "")
+                </td>
+
+                <td>
+                    @(item.TimeSlot != null 
+                        ? item.TimeSlot.EndTime.ToSwedishTime() 
+                        : "")       
+                </td>
+
+                <td>@item.Status</td>
+
+                <td class="text-end">
+                    @if (isAdmin || isCoach)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    }
+
+                    <a asp-action="Details" asp-route-id="@item.Id" class="ms-2">Details</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Inga tidigare bokningar.</p>
+}
