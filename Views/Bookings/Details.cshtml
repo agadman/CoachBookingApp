@@ -63,8 +63,7 @@
 </div>
 
 <div>
-
-    @* Admin/Coach får Edit *@
+    
     @if ((User.IsInRole("Admin") || User.IsInRole("Coach")) 
         && Model.Status == "Booked")
     {
@@ -72,8 +71,7 @@
            class="btn btn-warning">Edit</a>
     }
 
-    @* User får bara Cancel *@
-    @if (User.IsInRole("User") && Model.Status == "Booked")
+    @if (Model.Status == "Booked")
     {
         <form asp-action="Cancel" method="post" 
               style="display:inline">

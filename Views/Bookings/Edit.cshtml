@@ -23,7 +23,7 @@
                 else 
                 {
                     <input class="form-control" value="@Model.CustomerName" disabled />
-                    <input type="hidden" asp-for="CustomerName" /> <!-- Skicka med värdet i det dolda fältet -->
+                    <input type="hidden" asp-for="CustomerName" /> <!-- Skickar med värdet i det dolda fältet -->
                 } 
             </div>
             <div class="form-group">
@@ -36,7 +36,7 @@
                 else 
                 {
                     <input class="form-control" value="@Model.CustomerEmail" disabled />
-                    <input type="hidden" asp-for="CustomerEmail" /> <!-- Skicka med värdet i det dolda fältet -->
+                    <input type="hidden" asp-for="CustomerEmail" /> <!-- Skickar med värdet i det dolda fältet -->
                 }
             </div>
             @if (User.IsInRole("Admin") || User.IsInRole("Coach"))
