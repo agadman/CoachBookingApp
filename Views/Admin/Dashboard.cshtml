@@ -1,7 +1,49 @@
-<h2>Admin Dashboard</h2>
+<h2 class="mb4">Admin Dashboard</h2>
 
-<ul>
-    <li><a asp-controller="Coaches" asp-action="Index">Hantera coacher</a></li>
-    <li><a asp-controller="TimeSlot" asp-action="Index">Hantera tider</a></li>
-    <li><a asp-controller="Bookings" asp-action="Index">Hantera bokningar</a></li>
-</ul>
+<div class="alert alert-info" role="alert">
+    <p>Välkommen till adminpanelen! Här kan du hantera coacher, tider och bokningar.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <a asp-controller="Coaches" asp-action="Index" class="dashboard-card">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-chalkboard-teacher" style="font-size:2rem;"></i>
+                    </div>
+                    <h5 class="card-title mt-3">Hantera coacher</h5>
+                    <p class="card-text text-muted">Skapa, redigera och hantera coacher.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a asp-controller="TimeSlot" asp-action="Index" class="dashboard-card">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-calendar-days" style="font-size:2rem;"></i>
+                    </div>
+                    <h5 class="card-title mt-3">Hantera tider</h5>
+                    <p class="card-text text-muted">Skapa och hantera bokningsbara tider.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a asp-controller="Bookings" asp-action="Index" class="dashboard-card">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-book" style="font-size:2rem;"></i>
+                    </div>
+                    <h5 class="card-title mt-3">Hantera bokningar</h5>
+                    <p class="card-text text-muted">Se och administrera bokningar.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>

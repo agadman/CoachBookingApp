@@ -22,14 +22,6 @@ else
     <h1>Mina Bokningar</h1>
 }
 
-
-@if (isAdmin || isCoach)
-{
-    <p>
-        <a asp-action="Create">Skapa ny bokning</a>
-    </p>
-}
-
 @if (TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
@@ -44,7 +36,15 @@ else
     </div>
 }
 <!-- Här är de aktiva bokningarna (ej genomförda) -->
-<h3 class="mt-5">Aktiva bokningar</h3>
+<div class="d-flex justify-content-between align-items-center mt-5">
+    <h3>Aktiva bokningar</h3>
+    @if (isAdmin || isCoach) 
+    {
+        <a asp-action="Create" class="btn btn-primary" title="Skapa ny bokning">
+            <i class="fas fa-plus"></i>
+        </a>
+    }
+</div>
 
 @if (booked.Any())
 {
@@ -125,7 +125,7 @@ else
 }
 
 <!-- Här är de tidigare bokningarna (status: Cancelled, NoShow, completed) -->
-<h3 class="mt-5">Tidigare bokningar</h3>
+<h3 class="mt-5">Arkiverade bokningar</h3>
 
 @if (otherStatuses.Any())
 {

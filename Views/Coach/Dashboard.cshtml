@@ -1,14 +1,35 @@
-<h2>Coach Dashboard</h2>
+<h2 class="mb-4">Coach Dashboard</h2>
 
-<ul>
-    <li>
-        <a asp-controller="TimeSlot" asp-action="Index">
-            Mina tider
+<div class="alert alert-info" role="alert">
+    Välkommen till coachpanelen! Här kan du se och hantera dina tider och bokningar.
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <a asp-controller="TimeSlot" asp-action="Index" class="dashboard-card">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-calendar-days" style="font-size:2rem;"></i>
+                    </div>
+                    <h5 class="card-title mt-3">Mina tider</h5>
+                    <p class="card-text text-muted">Se och redigera dina bokningsbara tider.</p>
+                </div>
+            </div>
         </a>
-    </li>
-    <li>
-        <a asp-controller="Bookings" asp-action="Index">
-            Mina bokningar
+    </div>
+
+    <div class="col-md-6">
+        <a asp-controller="Bookings" asp-action="Index" class="dashboard-card">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <div class="dashboard-icon">
+                        <i class="fas fa-book" style="font-size:2rem;"></i>
+                    </div>
+                    <h5 class="card-title mt-3">Mina bokningar</h5>
+                    <p class="card-text text-muted">Se och hantera dina bokningar.</p>
+                </div>
+            </div>
         </a>
-    </li>
-</ul>
+    </div>
+</div>
