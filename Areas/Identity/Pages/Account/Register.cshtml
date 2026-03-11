@@ -1,0 +1,44 @@
+﻿@page
+@model RegisterModel
+
+@{
+    ViewData["Title"] = "Registrera konto";
+}
+
+<h1 class="mb-4">@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" placeholder="name@example.com" autocomplete="username" />
+                <label asp-for="Input.Email">E-post</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" placeholder="Lösenord" autocomplete="new-password" type="password" />
+                <label asp-for="Input.Password">Lösenord</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Bekräfta lösenord" autocomplete="new-password" type="password" />
+                <label asp-for="Input.ConfirmPassword">Bekräfta lösenord</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Registrera</button>
+
+            <div class="d-flex flex-column">
+                <a asp-page="/Account/Login">Har du redan ett konto? Logga in</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
