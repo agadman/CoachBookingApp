@@ -73,7 +73,7 @@ using (var scope = app.Services.CreateScope())
     {
         var user = new IdentityUser
         {
-            UserName = adminEmail,
+            UserName = "AdminMaster",
             Email = adminEmail,
             EmailConfirmed = true
         };
