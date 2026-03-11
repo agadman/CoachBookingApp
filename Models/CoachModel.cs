@@ -32,7 +32,10 @@ namespace CoachBookingApp.Models
         [Display(Name = "Bild")]
         public string? ImagePath { get; set; }
 
+        [Display(Name = "Skapad")]
         public DateTime? CreatedAt { get; set; }
+        
+        [Display(Name = "Skapad av")]
         public string? CreatedBy { get; set; }
        
         public string? UserId { get; set; }  // UserId kopplar Coach till IdentityUser, så man vet vilken användare som är coach

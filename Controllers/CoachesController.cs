@@ -148,15 +148,22 @@ namespace CoachBookingApp.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Title,Specialty,Bio")] Coach coach, IFormFile? imageFile)
         {
             if (id != coach.Id)
-            {
                 return NotFound();
-            }
+
+            var existingCoach = await _context.Coaches.FindAsync(id);
+
+            if (existingCoach == null)
+                return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Om usern laddar upp en ny bild, hantera filuppladdningen
+                    existingCoach.Name = coach.Name;
+                    existingCoach.Title = coach.Title;
+                    existingCoach.Specialty = coach.Specialty;
+                    existingCoach.Bio = coach.Bio;
+
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -166,29 +173,27 @@ namespace CoachBookingApp.Controllers
                             Directory.CreateDirectory(folderPath);
 
                         var filePath = Path.Combine(folderPath, fileName);
+
                         using var stream = new FileStream(filePath, FileMode.Create);
                         await imageFile.CopyToAsync(stream);
 
-                        coach.ImagePath = "/images/" + fileName;
+                        existingCoach.ImagePath = "/images/" + fileName;
                     }
 
-                    _context.Update(coach);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!CoachExists(coach.Id))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(coach);
+
+            return View(existingCoach);
         }
 
         // GET: Coaches/Delete/5

@@ -72,3 +72,18 @@ body {
 .dashboard-icon {
     font-size: 2.5rem;
 }
+
+/* Coaches/Index */
+.table-short {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bio-short {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

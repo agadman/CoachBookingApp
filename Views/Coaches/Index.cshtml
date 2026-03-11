@@ -41,34 +41,33 @@
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
-            <td>
-                <img src="@item.ImagePath" alt="@item.Name" style="height:20px;" />
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Specialty)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+            <tr>
+                <td>
+                    <img src="@item.ImagePath" alt="@item.Name" style="height:20px;" />
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td class="table-short">
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+                <td class="table-short">
+                    @Html.DisplayFor(modelItem => item.Specialty)
+                </td>
+                <td class="bio-short">
+                    @Html.DisplayFor(modelItem => item.Bio)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedAt)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedBy)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Redigera</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detaljer</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
