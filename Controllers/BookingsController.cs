@@ -386,7 +386,7 @@ namespace CoachBookingApp.Controllers
         {
             var booking = await _context.Bookings
                 .Include(b => b.TimeSlot)
-                .ThenInclude(ts => ts.Coach)
+                .ThenInclude(ts => ts!.Coach)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (booking == null)

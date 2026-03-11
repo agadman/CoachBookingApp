@@ -16,13 +16,13 @@
 
             <div class="form-group mb-3">
                 <label asp-for="StartTime" class="form-label"></label>
-                <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                <input asp-for="StartTime" class="form-control" type="datetime-local" value="@Model.StartTime.ToSwedishTime("yyyy-MM-ddTHH:mm")" />
                 <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
                 <label asp-for="EndTime" class="form-label"></label>
-                <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                <input asp-for="EndTime" class="form-control" type="datetime-local" value="@Model.EndTime.ToSwedishTime("yyyy-MM-ddTHH:mm")" />
                 <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
 
@@ -36,8 +36,8 @@
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back</a>
+                <input type="submit" value="Spara" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Tillbaka</a>
             </div>
         </form>
     </div>

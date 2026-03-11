@@ -62,14 +62,14 @@
                             <span class="text-success">Ledig</span>
                         }
                     </td>     
-                    <td>
+                    <td class="text-end">
                         @if (User.IsInRole("Admin"))
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                            <a asp-action="Edit" asp-route-id="@item.Id">Redigera</a>
                             <span> | </span>
                         } 
-                        <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                        <a asp-action="Details" asp-route-id="@item.Id">Detaljer</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">Ta bort</a>
                     </td>
                 </tr>
     }
@@ -77,16 +77,24 @@
 </table>
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
-
         initialView: 'dayGridMonth',
         timeZone: 'Europe/Stockholm',
-        displayEventTime: false, // <-- döljer default-tiden i kalendern
+        displayEventTime: false,
+        locale: 'sv',  
+        buttonText: {   
+            today: 'Idag',
+            month: 'Månad',
+            week: 'Vecka',
+            day: 'Dag',
+            list: 'Lista'
+        },
 
         events: [
             @foreach (var item in Model)
@@ -110,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
         eventClick: function(info) {
             window.location = '/TimeSlot/Details/' + info.event.id;
         }
-
     });
 
     calendar.render();

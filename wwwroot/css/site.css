@@ -30,6 +30,16 @@ body {
   text-align: start;
 }
 
+/* Hero-section */
+.hero {
+    background: url('/images/hero.jpg') center/cover no-repeat;
+    height: 350px;
+}
+
+.hero-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 /* Coach cards on Home/Index */
 .coach-card {
     max-width: 320px;
