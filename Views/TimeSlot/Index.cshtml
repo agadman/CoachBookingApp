@@ -53,7 +53,7 @@
                         @item.Coach?.Name
                     </td>
                     <td>
-                        @if (item.Booking != null)
+                        @if (item.Booking != null && item.Booking.Status == "Booked")
                         {
                             <span class="text-danger">Bokad</span>
                         }
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 var startTimeSwedish = item.StartTime.ToSwedishTime();
                 var title = $"{startTimeSwedish} {item.Coach?.Name}";
-                var color = item.Booking != null ? "red" : "green";
+                var color = (item.Booking != null && item.Booking.Status == "Booked") ? "red" : "green";
 
                 <text>
                 {

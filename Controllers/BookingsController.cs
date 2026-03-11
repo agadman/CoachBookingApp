@@ -104,10 +104,12 @@ namespace CoachBookingApp.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var nowUtc = DateTime.UtcNow;
 
+            // Hämta alla timeslots som är lediga eller har avbokade bokningar
             var freeSlotsQuery = _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
-                .Where(t => t.Booking == null && t.StartTime >= nowUtc); 
+                .Where(t => t.StartTime >= nowUtc &&
+                            (t.Booking == null || t.Booking.Status != "Booked")); // <-- ändring
 
             if (User.IsInRole("Coach"))
             {
@@ -141,17 +143,18 @@ namespace CoachBookingApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Coach")]
+        [Authorize(Roles = "Admin,Coach,User")]
         public async Task<IActionResult> Create(Booking booking)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            // Hämta timeslot inklusive bokning
             var slot = await _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
                 .FirstOrDefaultAsync(t => t.Id == booking.TimeSlotId);
 
-            if (slot == null || slot.Booking != null)
+            if (slot == null || (slot.Booking != null && slot.Booking.Status == "Booked"))
             {
                 ModelState.AddModelError("TimeSlotId", "Denna tid är redan bokad eller finns inte.");
             }
@@ -182,6 +185,28 @@ namespace CoachBookingApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Om något går fel, bygg dropdown igen
+            var nowUtc = DateTime.UtcNow;
+            var freeSlotsQuery = _context.Timeslots
+                .Include(t => t.Coach)
+                .Include(t => t.Booking)
+                .Where(t => t.StartTime >= nowUtc &&
+                            (t.Booking == null || t.Booking.Status != "Booked"));
+
+            if (User.IsInRole("Coach"))
+            {
+                freeSlotsQuery = freeSlotsQuery
+                    .Where(t => t.Coach != null && t.Coach.UserId == userId);
+            }
+
+            var freeSlots = freeSlotsQuery.OrderBy(t => t.StartTime).ToList();
+
+            ViewData["TimeSlotId"] = freeSlots.Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = $"{t.Coach!.Name} - {t.StartTime.ToSwedishTime()}"
+            }).ToList();
+
             return View(booking);
         }
 
@@ -199,7 +224,7 @@ namespace CoachBookingApp.Controllers
                 .Include(t => t.Booking)
                 .FirstOrDefaultAsync(t => t.Id == timeSlotId);
 
-            if (slot == null || slot.Booking != null)
+            if (slot == null || (slot.Booking != null && slot.Booking.Status == "Booked"))
                 return BadRequest("Tiden är redan bokad.");
 
             var booking = new Booking
@@ -420,13 +445,14 @@ namespace CoachBookingApp.Controllers
         {
             var nowUtc = DateTime.UtcNow;
 
+            // Visar tider som är lediga eller där bokning är avbokad
             var times = await _context.Timeslots
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
                 .Where(t =>
                     t.CoachId == coachId &&
-                    t.Booking == null &&
-                    t.StartTime > nowUtc)
+                    t.StartTime > nowUtc &&
+                    (t.Booking == null || t.Booking.Status != "Booked"))
                 .OrderBy(t => t.StartTime)
                 .ToListAsync();
 
