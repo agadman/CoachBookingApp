@@ -12,11 +12,11 @@
 
             @if (User.IsInRole("Admin"))
             {
-                <span class="badge bg-danger ms-2">Admin</span>
+                <span class="badge bg-dark text-white ms-2">Admin</span>
             }
             else if (User.IsInRole("Coach"))
             {
-                <span class="badge bg-info text-dark ms-2">Coach</span>
+                <span class="badge bg-success text-white ms-2">Coach</span>
             }
 
         </span>
