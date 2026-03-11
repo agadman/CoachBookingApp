@@ -6,20 +6,24 @@
 
     var isAdmin = User.IsInRole("Admin");
     var isCoach = User.IsInRole("Coach");
+
+    var sortedTimeSlots = Model.OrderByDescending(ts => ts.StartTime).ToList();
 }
 
-@if (isAdmin)
-{
-    <h1>Tider</h1>
-}
-else 
-{
-    <h1>Mina Tider</h1>
-}
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<div class="d-flex justify-content-between align-items-center mt-5">
+    @if (isAdmin)
+    {
+        <h1>Tider</h1>
+    }
+    else 
+    {
+        <h1>Mina Tider</h1>
+    }
+    <a asp-action="Create" class="btn btn-primary" title="Skapa ny tid">
+        <i class="fas fa-plus"></i>
+    </a>
+</div>
+<div id="calendar" class="mb-5"></div>
 <table class="table">
     <thead>
         <tr>
@@ -37,7 +41,7 @@ else
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model) {
+        @foreach (var item in sortedTimeSlots) {
                 <tr>
                     <td>
                         @item.StartTime.ToSwedishTime()
@@ -71,3 +75,45 @@ else
     }
     </tbody>
 </table>
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+
+        initialView: 'dayGridMonth',
+        timeZone: 'Europe/Stockholm',
+        displayEventTime: false, // <-- döljer default-tiden i kalendern
+
+        events: [
+            @foreach (var item in Model)
+            {
+                var startTimeSwedish = item.StartTime.ToSwedishTime();
+                var title = $"{startTimeSwedish} {item.Coach?.Name}";
+                var color = item.Booking != null ? "red" : "green";
+
+                <text>
+                {
+                    id: '@item.Id',
+                    title: '@title',
+                    start: '@item.StartTime.ToString("yyyy-MM-ddTHH:mm:ss")',
+                    end: '@item.EndTime.ToString("yyyy-MM-ddTHH:mm:ss")',
+                    color: '@color'
+                },
+                </text>
+            }
+        ],
+
+        eventClick: function(info) {
+            window.location = '/TimeSlot/Details/' + info.event.id;
+        }
+
+    });
+
+    calendar.render();
+});
+</script>
+}

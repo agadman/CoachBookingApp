@@ -12,7 +12,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => 
      options.SignIn.RequireConfirmedAccount = false) //Ändra till true i publik applikation
-    .AddRoles<IdentityRole>() // Här har jag lagt till stöd för roller i Identity
+    .AddRoles<IdentityRole>() // Här har jag lagt till stöd för rollerna i Identity
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 

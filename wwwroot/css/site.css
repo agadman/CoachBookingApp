@@ -30,6 +30,30 @@ body {
   text-align: start;
 }
 
+/* Coach cards on Home/Index */
+.coach-card {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.coach-card img {
+    height: 220px;
+    object-fit: contain;
+    background: #f8f9fa;
+}
+
+.coach-card .card-title {
+    font-size: 1.3rem;
+}
+
+.coach-card .card-subtitle {
+    font-size: 1rem;
+}
+
+.coach-card .card-text {
+    font-size: 0.9rem;
+}
+
 /* Dashboard styling */
 .dashboard-card {
     text-decoration: none;
