@@ -109,7 +109,7 @@ namespace CoachBookingApp.Controllers
                 .Include(t => t.Coach)
                 .Include(t => t.Booking)
                 .Where(t => t.StartTime >= nowUtc &&
-                            (t.Booking == null || t.Booking.Status != "Booked")); // <-- ändring
+                            (t.Booking == null || t.Booking.Status != "Booked"));
 
             if (User.IsInRole("Coach"))
             {
